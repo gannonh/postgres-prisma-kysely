@@ -1,16 +1,26 @@
-import prisma from '@/lib/prisma';
-import { timeAgo } from '@/lib/utils';
-import Image from 'next/image';
-import RefreshButton from './refresh-button';
+import { DB } from "@/lib/kysely";
+import { createKysely } from "@vercel/postgres-kysely";
+
+import { timeAgo } from "@/lib/utils";
+import Image from "next/image";
+import RefreshButton from "./refresh-button";
 
 export default async function Table() {
-  const startTime = Date.now();
-  const users = await prisma.users.findMany();
+  let users;
+  let startTime = Date.now();
+
+  try {
+    const db = createKysely<DB>();
+    users = await db.selectFrom("users").selectAll().execute();
+  } catch (e: any) {
+    throw e;
+  }
+
   const duration = Date.now() - startTime;
 
   return (
-    <div className="bg-white/30 p-12 shadow-xl ring-1 ring-gray-900/5 rounded-lg backdrop-blur-lg max-w-xl mx-auto w-full">
-      <div className="flex justify-between items-center mb-4">
+    <div className="w-full max-w-xl p-12 mx-auto rounded-lg shadow-xl bg-white/30 ring-1 ring-gray-900/5 backdrop-blur-lg">
+      <div className="flex items-center justify-between mb-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">Recent Users</h2>
           <p className="text-sm text-gray-500">
